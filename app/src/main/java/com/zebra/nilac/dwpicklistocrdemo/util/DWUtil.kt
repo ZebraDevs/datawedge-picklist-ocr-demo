@@ -8,17 +8,15 @@ import android.util.Log
 object DWUtil {
 
     private const val TAG = "DWUtil"
-    private const val PROFILE_NAME = "PickList OCR Demo"
-
-    const val DW_SCANNER_INTENT_ACTION = "com.zebra.nilac.dwpicklistocrdemo.SCANNER"
 
     fun generateDWBaseProfile(context: Context): Intent {
         Log.i(TAG, "Creating DW Profile unless it doesn't exists already")
 
         val bMain = Bundle().apply {
-            putString("PROFILE_NAME", PROFILE_NAME)
+            putString("PROFILE_NAME", AppConstants.PROFILE_NAME)
             putString("PROFILE_ENABLED", "true")
             putString("CONFIG_MODE", "CREATE_IF_NOT_EXIST")
+            putString("RESET_CONFIG", "true")
         }
 
         val configApplicationList = Bundle().apply {
@@ -28,7 +26,7 @@ object DWUtil {
 
         val intentModuleParamList = Bundle().apply {
             putString("intent_output_enabled", "true")
-            putString("intent_action", DW_SCANNER_INTENT_ACTION)
+            putString("intent_action", AppConstants.DW_SCANNER_INTENT_ACTION)
             putInt("intent_delivery", 2)
         }
 
@@ -48,26 +46,24 @@ object DWUtil {
             putBundle("PARAM_LIST", keystrokeModuleParamList)
         }
 
-        bMain.putParcelableArrayList("PLUGIN_CONFIG", arrayListOf(intentModule, keystrokeModule))
+        bMain.putParcelableArrayList(
+            "PLUGIN_CONFIG", arrayListOf(
+                intentModule, keystrokeModule,
+                enablePickListOCR()
+            )
+        )
         bMain.putParcelableArray("APP_LIST", arrayOf(configApplicationList))
 
         return Intent().apply {
             action = "com.symbol.datawedge.api.ACTION"
             setPackage("com.symbol.datawedge")
             putExtra("com.symbol.datawedge.api.SET_CONFIG", bMain)
+            putExtra("SEND_RESULT", "COMPLETE_RESULT")
+            putExtra("COMMAND_IDENTIFIER", AppConstants.PROFILE_CREATION_COMMAND_IDENTIFIER)
         }
     }
 
-    fun enablePickListOCR(): Intent {
-        val bMain = Bundle().apply {
-            putString("PROFILE_NAME", PROFILE_NAME)
-            putString("PROFILE_ENABLED", "true")
-            putString("CONFIG_MODE", "OVERWRITE")
-        }
-
-        val bConfigWorkflow = Bundle()
-        val bundlePluginConfig = ArrayList<Bundle>()
-
+    fun enablePickListOCR(): Bundle {
         val bPickListOcr = Bundle().apply {
             putString("module", "MlKitExModule")
             putBundle("module_params", Bundle().apply {
@@ -95,7 +91,6 @@ object DWUtil {
                 )
             })
         }
-
         val bPickListBarcode = Bundle().apply {
             putString("module", "BarcodeDecoderModule")
             putBundle("module_params", Bundle().apply {
@@ -114,9 +109,9 @@ object DWUtil {
             putString("workflow_name", "picklist_ocr")
             putString("workflow_input_source", "1")
             putParcelableArrayList("workflow_params", arrayListOf(bPickListOcr, bPickListBarcode))
-
         }
-        bConfigWorkflow.apply {
+
+        val bConfigWorkflow = Bundle().apply {
             putString("PLUGIN_NAME", "WORKFLOW")
             putString("RESET_CONFIG", "true")
 
@@ -126,15 +121,8 @@ object DWUtil {
 
             putParcelableArrayList("PARAM_LIST", arrayListOf(bConfigWorkflowParamList))
         }
-        bundlePluginConfig.add(bConfigWorkflow)
 
-        bMain.putParcelableArrayList("PLUGIN_CONFIG", bundlePluginConfig)
-
-        return Intent().apply {
-            action = "com.symbol.datawedge.api.ACTION"
-            setPackage("com.symbol.datawedge")
-            putExtra("com.symbol.datawedge.api.SET_CONFIG", bMain)
-        }
+        return bConfigWorkflow
     }
 
     private fun createBarcodeRules(): ArrayList<Bundle> {
