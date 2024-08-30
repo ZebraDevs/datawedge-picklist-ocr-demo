@@ -7,13 +7,20 @@ import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
+import com.zebra.nilac.dwpicklistocrdemo.databinding.ActivityMainBinding
 import com.zebra.nilac.dwpicklistocrdemo.util.AppConstants
 import com.zebra.nilac.dwpicklistocrdemo.util.DWUtil
 
 class MainActivity : AppCompatActivity() {
 
+    private lateinit var binding: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
+
+        setSupportActionBar(binding.toolbar)
 
         registerReceivers()
 
@@ -71,10 +78,11 @@ class MainActivity : AppCompatActivity() {
                         }
                         if (allSuccess) {
                             Log.d(TAG, "Profile created successfully")
-                            //TODO Enable Scan Button
+                            binding.scanButton.isEnabled = true
                         } else {
                             Log.e(TAG, "Profile creation failed!\n\n$resultInfo")
                             //FIXME remove this once the result is successful
+                            binding.scanButton.isEnabled = true
                         }
                     }
                 }
