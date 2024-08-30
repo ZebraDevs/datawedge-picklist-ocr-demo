@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.os.Bundle
 import android.util.Log
+import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import com.zebra.nilac.dwpicklistocrdemo.databinding.ActivityMainBinding
 import com.zebra.nilac.dwpicklistocrdemo.util.AppConstants
@@ -21,8 +22,11 @@ class MainActivity : AppCompatActivity() {
         setContentView(binding.root)
 
         setSupportActionBar(binding.toolbar)
-
         registerReceivers()
+
+        binding.scanButton.setOnClickListener {
+            launchScanningSession()
+        }
 
         //Create DW Profile if it doesn't exist already
         sendBroadcast(DWUtil.generateDWBaseProfile(this))
@@ -34,6 +38,14 @@ class MainActivity : AppCompatActivity() {
         filter.addAction(AppConstants.DW_SCANNER_INTENT_ACTION)
         filter.addCategory("android.intent.category.DEFAULT")
         registerReceiver(dwReceiver, filter)
+    }
+
+    private fun launchScanningSession() {
+        sendBroadcast(Intent().apply {
+            setPackage(AppConstants.DATAWEDGE_PACKAGE)
+            setAction(AppConstants.DATAWEDGE_API_ACTION)
+            putExtra(AppConstants.EXTRA_SOFT_SCAN_TRIGGER, "TOGGLE_SCANNING")
+        })
     }
 
     private val dwReceiver: BroadcastReceiver = object : BroadcastReceiver() {

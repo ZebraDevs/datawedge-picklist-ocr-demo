@@ -117,7 +117,7 @@ object DWUtil {
 
             putString("workflow_input_enabled", "true")
             putString("selected_workflow_name", "picklist_ocr")
-            putString("workflow_input_source", "1") //1 - Imager 2 - Camera
+            putString("workflow_input_source", "2") //1 - Imager 2 - Camera
 
             putParcelableArrayList("PARAM_LIST", arrayListOf(bConfigWorkflowParamList))
         }
