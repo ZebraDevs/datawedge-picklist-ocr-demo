@@ -37,10 +37,10 @@ class MainViewModel(private var application: Application) : AndroidViewModel(app
                 ""
             }
 
-            if (uri.isEmpty()) {
+            if (uri.isEmpty() || jsonArray.length() == 1) {
                 processedOutputResult.postValue(
                     OutputResult(
-                        DWUtil.extractStringDataFromJson(jsonArray), Date(), null
+                        DWUtil.extractStringDataFromJson(jsonArray[0] as JSONObject), Date(), null
                     )
                 )
                 return@launch
@@ -80,7 +80,7 @@ class MainViewModel(private var application: Application) : AndroidViewModel(app
 
             processedOutputResult.postValue(
                 OutputResult(
-                    DWUtil.extractStringDataFromJson(jsonArray), Date(), bitmap
+                    DWUtil.extractStringDataFromJson(jsonArray[1] as JSONObject), Date(), bitmap
                 )
             )
         }

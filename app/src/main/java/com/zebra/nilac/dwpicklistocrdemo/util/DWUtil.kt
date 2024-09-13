@@ -202,9 +202,7 @@ object DWUtil {
     }
 
 
-    fun extractStringDataFromJson(array: JSONArray): String {
-        val jsonObject = array[1] as JSONObject
-
+    fun extractStringDataFromJson(jsonObject: JSONObject): String {
         val stringData = jsonObject.get(AppConstants.KEY_STRING_DATA).toString()
         Log.d(TAG, "New captured Data: $stringData")
 
