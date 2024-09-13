@@ -4,17 +4,25 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.os.Build
 import android.os.Bundle
 import android.util.Log
-import android.view.View
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.Observer
+import androidx.recyclerview.widget.DefaultItemAnimator
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.zebra.nilac.dwpicklistocrdemo.databinding.ActivityMainBinding
 import com.zebra.nilac.dwpicklistocrdemo.util.AppConstants
 import com.zebra.nilac.dwpicklistocrdemo.util.DWUtil
+import org.json.JSONArray
 
 class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding
+    private lateinit var resultsAdapter: ResultsAdapter
+
+    private val mainViewModel: MainViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -23,10 +31,13 @@ class MainActivity : AppCompatActivity() {
 
         setSupportActionBar(binding.toolbar)
         registerReceivers()
+        setUpAdapter()
 
         binding.scanButton.setOnClickListener {
             launchScanningSession()
         }
+
+        mainViewModel.processedOutputResult.observe(this, processedResultObserver)
 
         //Create DW Profile if it doesn't exist already
         sendBroadcast(DWUtil.generateDWBaseProfile(this))
@@ -38,6 +49,15 @@ class MainActivity : AppCompatActivity() {
         filter.addAction(AppConstants.DW_SCANNER_INTENT_ACTION)
         filter.addCategory("android.intent.category.DEFAULT")
         registerReceiver(dwReceiver, filter)
+    }
+
+    private fun setUpAdapter() {
+        resultsAdapter = ResultsAdapter()
+        binding.resultsList.apply {
+            layoutManager = LinearLayoutManager(this@MainActivity)
+            itemAnimator = DefaultItemAnimator()
+            adapter = resultsAdapter
+        }
     }
 
     private fun launchScanningSession() {
@@ -93,25 +113,23 @@ class MainActivity : AppCompatActivity() {
                             binding.scanButton.isEnabled = true
                         } else {
                             Log.e(TAG, "Profile creation failed!\n\n$resultInfo")
-                            //FIXME remove this once the result is successful
-                            binding.scanButton.isEnabled = true
                         }
                     }
                 }
-            } else if (extras != null && intent.hasExtra("RESULT_INFO")) {
-                val result = intent.getStringExtra("RESULT")
-                val info = intent.getBundleExtra("RESULT_INFO")
-
-                if (result.equals("FAILURE")) {
-                    resultInfo += "Result info: $info\n"
-                } else {
-                    resultInfo += "Result: $result\n"
-
-                    Log.d(TAG, "Picklist OCR successfully enabled")
-                }
+            } else if (extras != null &&
+                action.equals(AppConstants.DW_SCANNER_INTENT_ACTION, ignoreCase = true)
+            ) {
+                val jsonData: String = extras.getString(AppConstants.DATA_TAG)!!
+                mainViewModel.parseOCRResult(jsonData)
             }
         }
     }
+
+    private val processedResultObserver: Observer<OutputResult> =
+        Observer { result ->
+            resultsAdapter.notifyAdapter(result)
+            binding.resultsList.scrollToPosition(0)
+        }
 
     companion object {
         const val TAG = "MainActivity"

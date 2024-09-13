@@ -2,16 +2,27 @@ package com.zebra.nilac.dwpicklistocrdemo.util
 
 import android.content.Context
 import android.content.Intent
+import android.database.Cursor
+import android.graphics.Bitmap
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
+import android.widget.ImageView
+import com.zebra.nilac.dwpicklistocrdemo.OutputResult
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import org.json.JSONArray
+import org.json.JSONException
+import org.json.JSONObject
+import java.io.ByteArrayOutputStream
+import java.io.IOException
 
 object DWUtil {
 
     private const val TAG = "DWUtil"
 
     fun generateDWBaseProfile(context: Context): Intent {
-        Log.i(TAG, "Creating DW Profile unless it doesn't exists already")
-
         val bMain = Bundle().apply {
             putString("PROFILE_NAME", AppConstants.PROFILE_NAME)
             putString("PROFILE_ENABLED", "true")
@@ -48,7 +59,8 @@ object DWUtil {
 
         bMain.putParcelableArrayList(
             "PLUGIN_CONFIG", arrayListOf(
-                intentModule, keystrokeModule,
+                intentModule,
+                keystrokeModule,
                 enablePickListOCR()
             )
         )
@@ -63,7 +75,7 @@ object DWUtil {
         }
     }
 
-    fun enablePickListOCR(): Bundle {
+    private fun enablePickListOCR(): Bundle {
         val bPickListOcr = Bundle().apply {
             putString("module", "MlKitExModule")
             putBundle("module_params", Bundle().apply {
@@ -74,7 +86,7 @@ object DWUtil {
                     "script",
                     "0"
                 ) // 0 - Latin, 1 - Latin & Chinese, 2 - Latin and Japanese, 3 - Latin and Korean, 4 Latin and Devanagari
-                putString("confidence_level", "80") // Integer range 0-100
+                putString("confidence_level", "70") // Integer range 0-100
                 putString("text_structure", "0") // 0 - Single Word, 1- Single Line
                 putString(
                     "picklist_mode",
@@ -107,7 +119,7 @@ object DWUtil {
 
         val bConfigWorkflowParamList = Bundle().apply {
             putString("workflow_name", "picklist_ocr")
-            putString("workflow_input_source", "1")
+            putString("workflow_input_source", "2")
             putParcelableArrayList("workflow_params", arrayListOf(bPickListOcr, bPickListBarcode))
         }
 
@@ -122,6 +134,7 @@ object DWUtil {
             putParcelableArrayList("PARAM_LIST", arrayListOf(bConfigWorkflowParamList))
         }
 
+        Log.i(TAG, "Creating DW Profile unless it doesn't exists already")
         return bConfigWorkflow
     }
 
@@ -186,5 +199,15 @@ object DWUtil {
             ))
         }
         return arrayListOf(testOcrRule)
+    }
+
+
+    fun extractStringDataFromJson(array: JSONArray): String {
+        val jsonObject = array[1] as JSONObject
+
+        val stringData = jsonObject.get(AppConstants.KEY_STRING_DATA).toString()
+        Log.d(TAG, "New captured Data: $stringData")
+
+        return stringData
     }
 }

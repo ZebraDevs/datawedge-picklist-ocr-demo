@@ -22,6 +22,16 @@
 
     </com.google.android.material.appbar.AppBarLayout>
 
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/results_list"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginTop="?actionBarSize"
+        android:listSelector="@android:color/transparent"
+        android:scrollbarStyle="outsideOverlay"
+        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
+        tools:listitem="@layout/result_row" />
+
     <com.google.android.material.floatingactionbutton.ExtendedFloatingActionButton
         android:id="@+id/scan_button"
         android:layout_width="wrap_content"
